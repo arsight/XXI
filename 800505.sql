@@ -37,8 +37,15 @@ select cus_util.get_cus_name(iCdaClient), /* 1 */
 cus_util.get_cus_address(iCdaClient,3),   /* 2 */
 decline(cus_util.get_cus_name(iCdaClient), pcusattr.get_cli_atr(359,iCdaClient,cd.get_lsdate,0,0), 'Р'), /* 3 */
 case when iCdaCes = 1  or cCdaUIndex='цс'  then
-     'Настоящим ПАО "Выборг-банк" уведомляет о том, что между '||case when dCdaSignDate < to_date('01.11.2015','dd.mm.yyyy') then 'ОАО "Выборг-банк"' else 'ПАО "Выборг-банк"' end||' и '||case when instr(cCdaAgrmnt,'КПК')>0 then 'КПК "СБЕРКАССА № 1" ' else 'БАНКОМ ИТБ (АО) ' end || util.date2str(dCdaSignDate)||' был заключен Договор уступки прав требования (цессия).'
-     else '' end, /* 4 */
+     'Настоящим ПАО "Выборг-банк" уведомляет о том, что между '||
+     case when dCdaSignDate < to_date('01.11.2015','dd.mm.yyyy') 
+          then 'ОАО "Выборг-банк"' else 'ПАО "Выборг-банк"' 
+     end
+     ||' и '||
+     case when instr(cCdaAgrmnt,'КПК')>0 then 'КПК "СБЕРКАССА № 1" ' else 'БАНКОМ ИТБ (АО) ' end 
+     || util.date2str(dCdaSignDate)||' был заключен Договор уступки прав требования (цессия).'
+   else '' 
+end, /* 4 */
 to_char(dCdaSignDate,'dd.mm.yyyy'), /* 5 */
 cCDaAgrmnt, /* 6 */
 util.date2str(dCdaSignDate) /* 7 */
@@ -71,7 +78,12 @@ cdsqla.addvalues(1, x.mOst ) mSum         /* 9 */
 from
 (
 select -- cdstate2.Get_Debit_Credit_TOD(:p1,cd.get_lsdate),cdstate.Get_Debit_Credit_TO(:p1,cd.get_lsdate),
-      1 n, greatest(cdbalance.get_cursaldo(:p1,1)+cdbalance.get_cursaldo(:p1,701)+decode(vbg_cdrep.Get_TypeDiscont(:p1),1,+1,2,-1,0)*nvl(vbg_cdrep.Get_OstPremDiscont(:p1, 701, cd.get_lsdate),0),0) mOst -- Osn
+      1 n, 
+      greatest(  cdbalance.get_cursaldo(:p1,1)+
+           cdbalance.get_cursaldo(:p1,701)+
+           decode(vbg_cdrep.Get_TypeDiscont(:p1),1,+1,2,-1,0)  *  nvl(vbg_cdrep.Get_OstPremDiscont(:p1, 701, cd.get_lsdate),0)
+        ,0)
+      mOst -- Osn
 from dual
 union all
 select 2 n, nvl(sum(mCdiAccrued),0) - nvl(sum(mCdiPayed),0) mOst --mProc
